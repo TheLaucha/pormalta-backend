@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000
 // Configura CORS
 app.use(
   cors({
-    origin: "http://localhost:5173", // Reemplaza con el dominio de tu frontend
+    origin: ["http://localhost:5173", "https://pormalta.com"], // Reemplaza con el dominio de tu frontend
   })
 )
 
