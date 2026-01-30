@@ -1,43 +1,45 @@
-const express = require("express")
-const axios = require("axios")
-require("dotenv").config()
-const cors = require("cors")
-const router = express.Router()
+export async function handler(event) {
+  const headers = {
+    "Access-Control-Allow-Origin": [
+      "https://quehacerenmalta.com",
+      "https://www.quehacerenmalta.com",
+    ].join(", "),
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  }
 
-const app = express()
-const port = process.env.PORT || 3000
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 204,
+      headers,
+      body: "",
+    }
+  }
 
-// Configura CORS
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "https://pormalta.com", "https://www.quehacerenmalta.com"], // Reemplaza con el dominio de tu frontend
-  })
-)
-
-router.get("/", (req, res) => {
-  res.status(200).send("Hello World")
-})
-
-router.get("/api/images", async (req, res) => {
   try {
-    const url = `https://storage.bunnycdn.com/${process.env.BUNNY_STORAGE_ZONE}/./`
-    const options = {
-      method: "GET",
+    const res = await fetch(`https://storage.bunnycdn.com/${process.env.BUNNY_STORAGE_ZONE}/`, {
       headers: {
-        accept: "application/json",
-        AccessKey: `${process.env.BUNNY_GALLERY_API_KEY}`,
+        AccessKey: process.env.BUNNY_GALLERY_API_KEY,
+        Accept: "application/json",
       },
+    })
+
+    if (!res.ok) {
+      throw new Error(`Bunny error ${res.status}`)
     }
 
-    const response = await axios.get(url, options)
-    const images = response.data
-    res.json(images)
-  } catch (error) {
-    console.error(error)
-    res.status(500).send("Error fetching images from Bunny.net")
+    const data = await res.json()
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(data),
+    }
+  } catch (err) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: err.message }),
+    }
   }
-})
-
-app.use("/.netlify/functions/api", router)
-
-module.exports.handler = serverless(app)
+}
