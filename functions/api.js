@@ -1,43 +1,27 @@
-const express = require("express")
-const axios = require("axios")
 require("dotenv").config()
-const cors = require("cors")
-const router = express.Router()
+const express = require("express")
+const corsConfig = require("../config/corsConfig")
+const serverless = require("serverless-http")
 
 const app = express()
-const port = process.env.PORT || 3000
+
+// Middleware para parsear el cuerpo de las solicitudes JSON
+app.use(express.json())
 
 // Configura CORS
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "https://pormalta.com"], // Reemplaza con el dominio de tu frontend
-  })
-)
+app.use(corsConfig)
 
-router.get("/", (req, res) => {
-  res.status(200).send("Hello World")
-})
+// Importar rutas
+const indexRoutes = require("../routes/index")
+const imagesRoutes = require("../routes/images")
+const emailRoutes = require("../routes/email")
 
-router.get("/api/images", async (req, res) => {
-  try {
-    const url = `https://storage.bunnycdn.com/${process.env.BUNNY_STORAGE_ZONE}/./`
-    const options = {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        AccessKey: `${process.env.BUNNY_GALLERY_API_KEY}`,
-      },
-    }
-
-    const response = await axios.get(url, options)
-    const images = response.data
-    res.json(images)
-  } catch (error) {
-    console.error(error)
-    res.status(500).send("Error fetching images from Bunny.net")
-  }
-})
-
-app.use("/.netlify/functions/api", router)
+// Usar las rutas
+app.use("/.netlify/functions/api", indexRoutes)
+app.use("/.netlify/functions/api", imagesRoutes)
+app.use("/.netlify/functions/api", emailRoutes)
+// app.use("/", indexRoutes)
+// app.use("/api/images", imagesRoutes)
+// app.use("/api/email", emailRoutes)
 
 module.exports.handler = serverless(app)
