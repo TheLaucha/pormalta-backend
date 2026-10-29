@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "netlify build",
-    "start": "node functions/server.js",
-    "dev": "node --watch app.js",
-    "deploy": "netlify deploy --prod"
+    "start": "netlify dev",
+    "dev": "netlify dev",
+    "deploy": "netlify deploy --build --prod"
   },
   "keywords": [],
   "author": "",
